@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>StreamLift – Alertas</title>
+    <style>
+        body { font-family: Arial; background: #0f172a; color: white; padding: 20px; }
+        h1 { color: #3b82f6; }
+        .alert { background: #1e293b; padding: 15px; border-radius: 10px; margin: 10px 0; }
+        .alert p { margin: 5px 0; }
+        .red { color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>📡 StreamLift – Centro de Monitoreo</h1>
+    <p>Alertas de detención + descarga de combustible</p>
+    <div id="alerts-container"></div>
+    <script>
+        const ws = new WebSocket(`ws://${location.host}/ws`);
+        const container = document.getElementById("alerts-container");
+        function addAlert(alert) {
+            const div = document.createElement("div");
+            div.className = "alert";
+            div.innerHTML = `
+                <p class="red">${alert.message}</p>
+                <p>Vehículo: ${alert.vehicle_id}</p>
+                <p>Ubicación: ${alert.lat.toFixed(5)}, ${alert.lng.toFixed(5)}</p>
+                <p>Velocidad: ${alert.speed} km/h | Combustible: ${alert.fuel_level}%</p>
+                <p>Hora: ${new Date(alert.timestamp * 1000).toLocaleString()}</p>
+            `;
+            container.prepend(div);
+        }
+        ws.onmessage = (event) => { addAlert(JSON.parse(event.data)); };
+        fetch('/alerts').then(r => r.json()).then(alerts => alerts.forEach(addAlert));
+    </script>
+</body>
+</html>
